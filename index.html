@@ -12,7 +12,6 @@
     <meta name="theme-color" content="#2563eb">
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; }
-        /* 모바일 테이블 세로 꺾임 방지 및 스크롤 최적화 */
         .no-break { white-space: nowrap; }
     </style>
 </head>
@@ -49,35 +48,30 @@
     <!-- 메인 컨테이너 -->
     <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
 
-        <!-- 1. [탭] 대시보드 -->
+        <!-- 1. [탭] 대시보드 (카드 클릭 시 상세 이동 기능 연동) -->
         <section id="tabDashboard" class="space-y-6">
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                    <p class="text-xs text-slate-500 font-medium">전체 자재 품목수</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div onclick="navigateToInventory('')" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:border-blue-400 hover:shadow-md transition">
+                    <p class="text-xs text-slate-500 font-medium">전체 자재 품목수 ➔</p>
                     <p id="dashTotalCount" class="text-2xl font-bold text-slate-800 mt-1">0</p>
                     <p class="text-[11px] text-emerald-600 mt-1">✓ 등록된 품목 기준</p>
                 </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                    <p class="text-xs text-slate-500 font-medium">총 재고 수량</p>
+                <div onclick="navigateToInventory('')" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:border-blue-400 hover:shadow-md transition">
+                    <p class="text-xs text-slate-500 font-medium">총 재고 수량 ➔</p>
                     <p id="dashTotalStock" class="text-2xl font-bold text-blue-600 mt-1">0</p>
                     <p class="text-[11px] text-slate-400 mt-1">📦 전 창고 합산</p>
                 </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                    <p class="text-xs text-slate-500 font-medium">안전재고 부족 품목</p>
+                <div onclick="navigateToInventory('부족')" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:border-rose-400 hover:shadow-md transition">
+                    <p class="text-xs text-slate-500 font-medium">재고 부족 품목 ➔</p>
                     <p id="dashShortageCount" class="text-2xl font-bold text-rose-600 mt-1">0</p>
                     <p class="text-[11px] text-rose-500 mt-1">⚠️ 즉시 발주 필요</p>
                 </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                    <p class="text-xs text-slate-500 font-medium">총 입출고 내역</p>
-                    <p id="dashLogCount" class="text-2xl font-bold text-purple-600 mt-1">0</p>
-                    <p class="text-[11px] text-slate-400 mt-1">🔄 누적 거래 건수</p>
-                </div>
             </div>
 
-            <!-- 최근 입출고 내역 및 부족 리스트 -->
+            <!-- 최근 입출고 내역 및 재고 부족 리스트 -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-3">
-                    <h3 class="font-bold text-slate-700 text-sm">⚠️ 안전재고 미달 자재 리스트</h3>
+                    <h3 class="font-bold text-slate-700 text-sm">⚠️ 재고 부족 리스트</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs min-w-[320px]">
                             <thead>
@@ -112,23 +106,22 @@
             </div>
         </section>
 
-        <!-- 2. [탭] 자재 및 재고 현황 (글자 세로 꺾임 방지 min-w 적용) -->
+        <!-- 2. [탭] 자재 및 재고 현황 -->
         <section id="tabInventory" class="space-y-4 hidden">
             <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4">
                 <div class="flex flex-wrap justify-between items-center gap-3">
                     <div>
                         <h2 class="font-bold text-slate-800 text-base">📊 자재 및 재고 현황</h2>
-                        <p class="text-xs text-slate-500">등록된 모든 자재의 규격, 위치 및 현재 재고를 확인하고 누적 로그를 관리합니다.</p>
+                        <p class="text-xs text-slate-500">등록된 모든 자재의 규격, 위치 및 현재 재고를 확인하고 관리합니다.</p>
                     </div>
                     <button onclick="exportCSV('inventory')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-semibold shadow transition no-break">엑셀(CSV) 다운로드</button>
                 </div>
 
                 <!-- 검색창 -->
                 <div class="flex gap-2">
-                    <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="자재명 또는 자재번호로 검색..." class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="자재명 또는 자재번호, '부족' 검색..." class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
 
-                <!-- 테이블 가로 스크롤 및 최소 너비 보장으로 글자 찌그러짐 방지 -->
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-sm min-w-[550px]">
                         <thead>
@@ -145,21 +138,25 @@
                 </div>
             </div>
 
-            <!-- 누적 입출고 이력 로그 -->
+            <!-- 전체 입출고 누적 이력 로그 (개별 삭제 및 전체 초기화 기능 추가) -->
             <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-3">
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center flex-wrap gap-2">
                     <h3 class="font-bold text-slate-700 text-sm">📋 전체 입출고 누적 이력 로그</h3>
-                    <button onclick="exportCSV('logs')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs px-3 py-1.5 rounded font-semibold no-break">이력 다운로드</button>
+                    <div class="flex gap-2">
+                        <button onclick="clearAllLogs()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs px-2.5 py-1.5 rounded font-semibold no-break">이력 전체 초기화</button>
+                        <button onclick="exportCSV('logs')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs px-2.5 py-1.5 rounded font-semibold no-break">이력 다운로드</button>
+                    </div>
                 </div>
                 <div class="overflow-x-auto max-h-72">
-                    <table class="w-full text-left border-collapse text-xs min-w-[500px]">
+                    <table class="w-full text-left border-collapse text-xs min-w-[550px]">
                         <thead>
                             <tr class="border-b border-slate-200 text-slate-400 bg-slate-50 sticky top-0">
                                 <th class="p-2 w-32">일시</th>
                                 <th class="p-2 w-16">구분</th>
                                 <th class="p-2 w-36">자재명</th>
-                                <th class="p-2 text-right w-20">수량</th>
+                                <th class="p-2 text-right w-16">수량</th>
                                 <th class="p-2">작업자 / 비고</th>
+                                <th class="p-2 text-center w-12">관리</th>
                             </tr>
                         </thead>
                         <tbody id="logTableBody"></tbody>
@@ -214,14 +211,14 @@
                     </div>
                 </div>
 
-                <!-- 안내 박스 (이모지 줄바꿈 찌그러짐 방지) -->
+                <!-- 안내 박스 -->
                 <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-3 text-xs text-slate-600">
                     <h3 class="font-bold text-slate-800 text-sm">💡 이용 안내</h3>
                     <ul class="list-disc pl-4 space-y-2">
                         <li>자재 코드를 잘 모를 경우 <b class="no-break">[자재/재고 현황]</b> 탭에서 코드를 확인하실 수 있습니다.</li>
                         <li>카메라 스캔 아이콘(<span class="no-break">📷</span>)을 누르면 스마트폰 카메라가 켜져서 QR코드를 자동으로 인식합니다.</li>
                         <li>출고 시 현재 재고보다 많은 수량을 출고할 수 없도록 제한됩니다.</li>
-                        <li>모든 입출고 내역은 날짜별로 누적되어 이력 로그 및 엑셀 파일로 다운로드 가능합니다.</li>
+                        <li>불필요한 입출고 기록은 이력 로그에서 삭제 버튼(❌)을 눌러 정리할 수 있습니다.</li>
                     </ul>
                 </div>
             </div>
@@ -305,10 +302,8 @@
             { code: 'MTR-005', name: '방진 고무패드', spec: '100x100x10t / B창고', safety: 30, stock: 15 }
         ];
 
-        let txLogs = JSON.parse(localStorage.getItem('yjhitech_logs_v3')) || [
-            { time: '2026-06-06 14:20', type: 'OUT', name: '고강도 케이블 타이', qty: 105, memo: '조립2팀 출고' },
-            { time: '2026-06-05 10:11', type: 'IN', name: '고강도 케이블 타이', qty: 150, memo: '입고 완료' }
-        ];
+        // 과거 예시 로그를 빈 배열로 초기화하여 불필요한 이력 제거
+        let txLogs = JSON.parse(localStorage.getItem('yjhitech_logs_v3')) || [];
 
         let adminPw = localStorage.getItem('yjhitech_admin_pw') || 'dudwjs1998$$';
         let isAdmin = false;
@@ -344,6 +339,16 @@
             }
         }
 
+        // 대시보드 카드 클릭 시 자재/재고 현황 탭으로 이동 및 검색어 세팅
+        function navigateToInventory(searchKeyword) {
+            switchTab('inventory');
+            const searchInput = document.getElementById('inventorySearch');
+            if(searchInput) {
+                searchInput.value = searchKeyword;
+                renderInventoryTable();
+            }
+        }
+
         // 대시보드 렌더링
         function renderDashboard() {
             document.getElementById('dashTotalCount').innerText = materials.length;
@@ -352,12 +357,11 @@
 
             const shortageItems = materials.filter(m => m.stock < m.safety);
             document.getElementById('dashShortageCount').innerText = shortageItems.length;
-            document.getElementById('dashLogCount').innerText = txLogs.length;
 
             const shortageTbody = document.getElementById('dashShortageTable');
             shortageTbody.innerHTML = '';
             if(shortageItems.length === 0) {
-                shortageTbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-400">안전재고 미달 품목이 없습니다.</td></tr>`;
+                shortageTbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-400">재고 부족 품목이 없습니다.</td></tr>`;
             } else {
                 shortageItems.forEach(m => {
                     shortageTbody.innerHTML += `
@@ -391,15 +395,23 @@
             }
         }
 
-        // 자재 목록 테이블 렌더링 (단어 잘림 방지 스타일 적용)
+        // 자재 목록 테이블 렌더링
         function renderInventoryTable() {
             const searchInput = document.getElementById('inventorySearch');
-            const keyword = searchInput ? searchInput.value.toLowerCase() : '';
+            const keyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
             const tbody = document.getElementById('inventoryTableBody');
             if(!tbody) return;
             tbody.innerHTML = '';
             
-            const filtered = materials.filter(m => m.code.toLowerCase().includes(keyword) || m.name.toLowerCase().includes(keyword));
+            const filtered = materials.filter(m => {
+                const isShort = m.stock < m.safety;
+                const matchesKeyword = m.code.toLowerCase().includes(keyword) || m.name.toLowerCase().includes(keyword) || m.spec.toLowerCase().includes(keyword);
+                if(keyword === '부족') {
+                    return isShort;
+                }
+                return matchesKeyword;
+            });
+
             if(filtered.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">검색된 자재가 없습니다.</td></tr>`;
                 return;
@@ -421,27 +433,51 @@
             });
         }
 
-        // 로그 테이블 렌더링
+        // 로그 테이블 렌더링 (개별 삭제 버튼 추가)
         function renderLogsTable() {
             const tbody = document.getElementById('logTableBody');
             if(!tbody) return;
             tbody.innerHTML = '';
             if(txLogs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">입출고 이력이 없습니다.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-slate-400">입출고 이력이 없습니다.</td></tr>`;
                 return;
             }
-            txLogs.forEach(l => {
+            txLogs.forEach((l, index) => {
                 const badge = l.type === 'IN' ? '<span class="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded text-[10px] font-bold no-break">입고</span>' : '<span class="bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded text-[10px] font-bold no-break">출고</span>';
                 tbody.innerHTML += `
-                    <tr class="border-b border-slate-100">
+                    <tr class="border-b border-slate-100 hover:bg-slate-50">
                         <td class="p-2 text-slate-400 no-break">${l.time}</td>
                         <td class="p-2">${badge}</td>
                         <td class="p-2 font-medium text-slate-800 no-break">${l.name}</td>
                         <td class="p-2 text-right font-bold no-break">${l.qty}</td>
                         <td class="p-2 text-slate-600">${l.memo}</td>
+                        <td class="p-2 text-center">
+                            <button onclick="deleteLog(${index})" class="text-rose-500 hover:text-rose-700 text-xs font-bold px-1.5 py-0.5 rounded bg-rose-50">❌</button>
+                        </td>
                     </tr>
                 `;
             });
+        }
+
+        // 개별 이력 삭제 기능
+        function deleteLog(index) {
+            if(confirm('이 입출고 이력을 삭제하시겠습니까?')) {
+                txLogs.splice(index, 1);
+                localStorage.setItem('yjhitech_logs_v3', JSON.stringify(txLogs));
+                renderLogsTable();
+                renderDashboard();
+            }
+        }
+
+        // 전체 이력 초기화 기능
+        function clearAllLogs() {
+            if(confirm('모든 입출고 이력 로그를 초기화(삭제)하시겠습니까?')) {
+                txLogs = [];
+                localStorage.setItem('yjhitech_logs_v3', JSON.stringify(txLogs));
+                renderLogsTable();
+                renderDashboard();
+                alert('모든 이력이 초기화되었습니다.');
+            }
         }
 
         // 코드 직접 조회
