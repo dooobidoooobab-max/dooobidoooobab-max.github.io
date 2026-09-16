@@ -287,8 +287,8 @@
     </div>
 
     <script>
-        // 초기 자재 데이터 (안전재고 safety 포함)
-        let materials = JSON.parse(localStorage.getItem('yjhitech_materials_v2')) || [
+        // 초기 자재 데이터 (안전재고 safety 포함) - 버전 v3 적용
+        let materials = JSON.parse(localStorage.getItem('yjhitech_materials_v3')) || [
             { code: 'MTR-001', name: '스테인리스 볼트', spec: 'M8x30mm / A창고', safety: 50, stock: 120 },
             { code: 'MTR-002', name: '고강도 케이블 타이오', spec: '100mm 검정 / A창고', safety: 100, stock: 45 },
             { code: 'MTR-003', name: '산업용 절삭유', spec: '20L 통 / B창고', safety: 10, stock: 8 },
@@ -296,7 +296,7 @@
             { code: 'MTR-005', name: '방진 고무패드', spec: '100x100x10t / B창고', safety: 30, stock: 15 }
         ];
 
-        let txLogs = JSON.parse(localStorage.getItem('yjhitech_logs_v2')) || [
+        let txLogs = JSON.parse(localStorage.getItem('yjhitech_logs_v3')) || [
             { time: '2026-06-06 14:20', type: 'OUT', name: '고강도 케이블 타이오', qty: 105, memo: '조립2팀 출고' },
             { time: '2026-06-05 10:11', type: 'IN', name: '고강도 케이블 타이오', qty: 150, memo: '입고 완료' }
         ];
@@ -309,7 +309,8 @@
         // 탭 전환 기능
         function switchTab(tabName) {
             ['dashboard', 'inventory', 'inout', 'admin'].forEach(t => {
-                document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.add('hidden');
+                const el = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if(el) el.classList.add('hidden');
             });
             ['DashboardBtn', 'InvBtn', 'InOutBtn', 'AdminBtn'].forEach(b => {
                 const btn = document.getElementById(`tab${b}`);
@@ -385,8 +386,10 @@
 
         // 자재 목록 테이블 렌더링
         function renderInventoryTable() {
-            const keyword = document.getElementById('inventorySearch').value.toLowerCase();
+            const searchInput = document.getElementById('inventorySearch');
+            const keyword = searchInput ? searchInput.value.toLowerCase() : '';
             const tbody = document.getElementById('inventoryTableBody');
+            if(!tbody) return;
             tbody.innerHTML = '';
             
             const filtered = materials.filter(m => m.code.toLowerCase().includes(keyword) || m.name.toLowerCase().includes(keyword));
@@ -414,6 +417,7 @@
         // 로그 테이블 렌더링
         function renderLogsTable() {
             const tbody = document.getElementById('logTableBody');
+            if(!tbody) return;
             tbody.innerHTML = '';
             if(txLogs.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">입출고 이력이 없습니다.</td></tr>`;
@@ -510,8 +514,8 @@
                 memo: memo
             });
 
-            localStorage.setItem('yjhitech_materials_v2', JSON.stringify(materials));
-            localStorage.setItem('yjhitech_logs_v2', JSON.stringify(txLogs));
+            localStorage.setItem('yjhitech_materials_v3', JSON.stringify(materials));
+            localStorage.setItem('yjhitech_logs_v3', JSON.stringify(txLogs));
 
             alert(`${type === 'IN' ? '입고' : '출고'}가 완료되었습니다! (현재고: ${item.stock}개)`);
             document.getElementById('selectedItemStock').innerText = item.stock;
@@ -578,7 +582,7 @@
                 alert('새로운 자재가 등록되었습니다.');
             }
 
-            localStorage.setItem('yjhitech_materials_v2', JSON.stringify(materials));
+            localStorage.setItem('yjhitech_materials_v3', JSON.stringify(materials));
             document.getElementById('adminCode').value = '';
             document.getElementById('adminName').value = '';
             document.getElementById('adminSpec').value = '';
@@ -628,7 +632,7 @@
             link.click();
         }
 
-        // 초기 실행
+        // 초기 실행 및 안전 로딩
         window.onload = function() {
             switchTab('dashboard');
         };
