@@ -18,19 +18,26 @@
 
     <!-- 상단 헤더 및 탭 네비게이션 -->
     <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-40">
-        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
-            <h1 class="text-base sm:text-lg font-bold text-blue-600 flex items-center gap-2">📦 자재 관리 시스템</h1>
+        <div class="max-w-6xl mx-auto px-3 py-3 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="w-full sm:w-auto flex justify-between items-center">
+                <h1 class="text-base font-bold text-blue-600 flex items-center gap-1.5">📦 자재 관리 시스템</h1>
+                <!-- 모바일용 관리자 모드 뱃지/버튼 (우측 상단 배치용) -->
+                <div class="flex items-center space-x-2 sm:hidden">
+                    <span id="roleBadgeMobile" class="text-[11px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-medium">작업자</span>
+                    <button id="authBtnMobile" onclick="toggleAuthModal()" class="bg-blue-600 text-white text-[11px] px-2.5 py-1 rounded font-semibold shadow">관리자</button>
+                </div>
+            </div>
             
-            <!-- 네비게이션 탭 버튼들 -->
-            <nav class="flex items-center space-x-1 overflow-x-auto">
-                <button onclick="switchTab('dashboard')" id="tabDashboardBtn" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold bg-blue-50 text-blue-600 transition">대시보드</button>
-                <button onclick="switchTab('inventory')" id="tabInvBtn" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">자재 및 재고 현황</button>
-                <button onclick="switchTab('inout')" id="tabInOutBtn" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">입출고 등록</button>
-                <button onclick="switchTab('admin')" id="tabAdminBtn" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 transition hidden">자재관리(관리자)</button>
+            <!-- 네비게이션 탭 버튼들 (whitespace-nowrap으로 줄바꿈 방지 및 좌우 스크롤 적용) -->
+            <nav class="w-full sm:w-auto flex items-center space-x-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                <button onclick="switchTab('dashboard')" id="tabDashboardBtn" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 transition whitespace-nowrap">대시보드</button>
+                <button onclick="switchTab('inventory')" id="tabInvBtn" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition whitespace-nowrap">자재/재고 현황</button>
+                <button onclick="switchTab('inout')" id="tabInOutBtn" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition whitespace-nowrap">입출고 등록</button>
+                <button onclick="switchTab('admin')" id="tabAdminBtn" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 transition whitespace-nowrap hidden">자재관리(관리자)</button>
             </nav>
 
-            <!-- 관리자 모드 전환 버튼 -->
-            <div class="flex items-center space-x-2">
+            <!-- PC 화면용 관리자 모드 전환 버튼 -->
+            <div class="hidden sm:flex items-center space-x-2">
                 <span id="roleBadge" class="text-xs bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-medium">작업자 모드</span>
                 <button id="authBtn" onclick="toggleAuthModal()" class="bg-blue-600 text-white text-xs px-3 py-1.5 rounded font-semibold shadow hover:bg-blue-700 transition">관리자 전환</button>
             </div>
@@ -158,21 +165,21 @@
             </div>
         </section>
 
-        <!-- 3. [탭] 입출고 등록 (코드명 입력 기본 + 카메라 버튼으로 스캐너 팝업) -->
+        <!-- 3. [탭] 입출고 등록 (코드명 입력 기본 + 카메라 버튼 크기 및 넘침 완벽 해결) -->
         <section id="tabInOut" class="space-y-6 hidden">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- 입출고 처리 입력 카드 -->
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4">
                     <h2 class="font-bold text-slate-800 text-base flex items-center gap-2">⚡ 입출고 처리</h2>
-                    <p class="text-xs text-slate-500">자재 코드를 직접 입력하거나 📷 카메라 버튼을 눌러 QR/바코드를 스캔하세요.</p>
+                    <p class="text-xs text-slate-500">자재 코드를 직접 입력하거나 📷 카메라 버튼을 눌러 스캔하세요.</p>
 
-                    <!-- 코드 입력 및 카메라 버튼 -->
+                    <!-- 코드 입력 및 버튼부 (너비 초과 방지 뷰 구조 개선) -->
                     <div class="space-y-1">
                         <label class="block text-xs font-semibold text-slate-600">자재 코드 입력</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="manualCode" placeholder="예: MTR-001 입력" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <button onclick="searchMaterialByCode()" class="bg-slate-800 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-slate-700">조회</button>
-                            <button onclick="openScannerModal()" title="QR/바코드 카메라 스캔" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 flex items-center justify-center shadow">
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="manualCode" placeholder="예: MTR-001 입력" class="min-w-0 flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button onclick="searchMaterialByCode()" class="shrink-0 bg-slate-800 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-slate-700">조회</button>
+                            <button onclick="openScannerModal()" title="QR/바코드 카메라 스캔" class="shrink-0 bg-blue-600 text-white w-10 h-10 rounded-lg text-sm font-semibold hover:bg-blue-700 flex items-center justify-center shadow">
                                 📷
                             </button>
                         </div>
@@ -185,7 +192,7 @@
                                 <p id="selectedItemName" class="font-bold text-slate-800 text-sm">-</p>
                                 <p id="selectedItemSpec" class="text-xs text-slate-500">-</p>
                             </div>
-                            <span class="text-xs bg-blue-600 text-white px-2 py-1 rounded font-bold">현재고: <span id="selectedItemStock">0</span>개</span>
+                            <span class="text-xs bg-blue-600 text-white px-2 py-1 rounded font-bold shrink-0">현재고: <span id="selectedItemStock">0</span>개</span>
                         </div>
                         
                         <div class="pt-2 border-t border-blue-200 space-y-3">
@@ -209,8 +216,8 @@
                 <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-3 text-xs text-slate-600">
                     <h3 class="font-bold text-slate-800 text-sm">💡 이용 안내</h3>
                     <ul class="list-disc pl-4 space-y-2">
-                        <li>자재 코드를 잘 모를 경우 <b>[자재 및 재고 현황]</b> 탭에서 코드를 확인하실 수 있습니다.</li>
-                        <li>카메라 스캔 아이콘(📷)을 누르면 스마트폰이나 PC 카메라가 켜져서 QR코드를 자동으로 인식합니다.</li>
+                        <li>자재 코드를 잘 모를 경우 <b>[자재/재고 현황]</b> 탭에서 코드를 확인하실 수 있습니다.</li>
+                        <li>카메라 스캔 아이콘(📷)을 누르면 스마트폰 카메라가 켜져서 QR코드를 자동으로 인식합니다.</li>
                         <li>출고 시 현재 재고보다 많은 수량을 출고할 수 없도록 제한됩니다.</li>
                         <li>모든 입출고 내역은 날짜별로 누적되어 이력 로그 및 엑셀 파일로 다운로드 가능합니다.</li>
                     </ul>
@@ -287,18 +294,18 @@
     </div>
 
     <script>
-        // 초기 자재 데이터 (안전재고 safety 포함) - 버전 v3 적용
+        // 초기 자재 데이터 (v3 버전 유지)
         let materials = JSON.parse(localStorage.getItem('yjhitech_materials_v3')) || [
             { code: 'MTR-001', name: '스테인리스 볼트', spec: 'M8x30mm / A창고', safety: 50, stock: 120 },
-            { code: 'MTR-002', name: '고강도 케이블 타이오', spec: '100mm 검정 / A창고', safety: 100, stock: 45 },
+            { code: 'MTR-002', name: '고강도 케이블 타이', spec: '100mm 검정 / A창고', safety: 100, stock: 45 },
             { code: 'MTR-003', name: '산업용 절삭유', spec: '20L 통 / B창고', safety: 10, stock: 8 },
             { code: 'MTR-004', name: '우레탄 캐스터 바퀴', spec: '4인치 회전 / C창고', safety: 20, stock: 35 },
             { code: 'MTR-005', name: '방진 고무패드', spec: '100x100x10t / B창고', safety: 30, stock: 15 }
         ];
 
         let txLogs = JSON.parse(localStorage.getItem('yjhitech_logs_v3')) || [
-            { time: '2026-06-06 14:20', type: 'OUT', name: '고강도 케이블 타이오', qty: 105, memo: '조립2팀 출고' },
-            { time: '2026-06-05 10:11', type: 'IN', name: '고강도 케이블 타이오', qty: 150, memo: '입고 완료' }
+            { time: '2026-06-06 14:20', type: 'OUT', name: '고강도 케이블 타이', qty: 105, memo: '조립2팀 출고' },
+            { time: '2026-06-05 10:11', type: 'IN', name: '고강도 케이블 타이', qty: 150, memo: '입고 완료' }
         ];
 
         let adminPw = localStorage.getItem('yjhitech_admin_pw') || 'dudwjs1998$$';
@@ -314,24 +321,24 @@
             });
             ['DashboardBtn', 'InvBtn', 'InOutBtn', 'AdminBtn'].forEach(b => {
                 const btn = document.getElementById(`tab${b}`);
-                if(btn) btn.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition";
+                if(btn) btn.className = "px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition whitespace-nowrap";
             });
 
             if(tabName === 'dashboard') {
                 document.getElementById('tabDashboard').classList.remove('hidden');
-                document.getElementById('tabDashboardBtn').className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold bg-blue-50 text-blue-600 transition";
+                document.getElementById('tabDashboardBtn').className = "px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 transition whitespace-nowrap";
                 renderDashboard();
             } else if(tabName === 'inventory') {
                 document.getElementById('tabInventory').classList.remove('hidden');
-                document.getElementById('tabInvBtn').className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold bg-blue-50 text-blue-600 transition";
+                document.getElementById('tabInvBtn').className = "px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 transition whitespace-nowrap";
                 renderInventoryTable();
                 renderLogsTable();
             } else if(tabName === 'inout') {
                 document.getElementById('tabInOut').classList.remove('hidden');
-                document.getElementById('tabInOutBtn').className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold bg-blue-50 text-blue-600 transition";
+                document.getElementById('tabInOutBtn').className = "px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 transition whitespace-nowrap";
             } else if(tabName === 'admin' && isAdmin) {
                 document.getElementById('tabAdmin').classList.remove('hidden');
-                document.getElementById('tabAdminBtn').className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold bg-amber-100 text-amber-800 transition";
+                document.getElementById('tabAdminBtn').className = "px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-100 text-amber-800 transition whitespace-nowrap";
             }
         }
 
@@ -534,8 +541,14 @@
                 isAdmin = true;
                 document.getElementById('roleBadge').innerText = "관리자 모드";
                 document.getElementById('roleBadge').className = "text-xs bg-amber-600 text-white px-2.5 py-1 rounded-full font-bold";
+                document.getElementById('roleBadgeMobile').innerText = "관리자";
+                document.getElementById('roleBadgeMobile').className = "text-[11px] bg-amber-600 text-white px-2 py-0.5 rounded-full font-bold";
+                
                 document.getElementById('authBtn').innerText = "작업자 전환";
                 document.getElementById('authBtn').setAttribute('onclick', 'switchToWorker()');
+                document.getElementById('authBtnMobile').innerText = "작업자";
+                document.getElementById('authBtnMobile').setAttribute('onclick', 'switchToWorker()');
+                
                 document.getElementById('tabAdminBtn').classList.remove('hidden');
                 toggleAuthModal();
                 alert('관리자 모드로 전환되었습니다.');
@@ -550,8 +563,14 @@
             isAdmin = false;
             document.getElementById('roleBadge').innerText = "작업자 모드";
             document.getElementById('roleBadge').className = "text-xs bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-medium";
+            document.getElementById('roleBadgeMobile').innerText = "작업자";
+            document.getElementById('roleBadgeMobile').className = "text-[11px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-medium";
+            
             document.getElementById('authBtn').innerText = "관리자 전환";
             document.getElementById('authBtn').setAttribute('onclick', 'toggleAuthModal()');
+            document.getElementById('authBtnMobile').innerText = "관리자";
+            document.getElementById('authBtnMobile').setAttribute('onclick', 'toggleAuthModal()');
+            
             document.getElementById('tabAdminBtn').classList.add('hidden');
             switchTab('dashboard');
             alert('작업자 모드로 전환되었습니다.');
