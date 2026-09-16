@@ -50,16 +50,12 @@
 
         <!-- 1. [탭] 대시보드 -->
         <section id="tabDashboard" class="space-y-6">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- 요약 카드 (총 재고 수량 제거, 2개 카드) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div onclick="navigateToInventory('')" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:border-blue-400 hover:shadow-md transition">
                     <p class="text-xs text-slate-500 font-medium">전체 자재 품목수 ➔</p>
                     <p id="dashTotalCount" class="text-2xl font-bold text-slate-800 mt-1">0</p>
                     <p class="text-[11px] text-emerald-600 mt-1">✓ 등록된 품목 기준</p>
-                </div>
-                <div onclick="navigateToInventory('')" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:border-blue-400 hover:shadow-md transition">
-                    <p class="text-xs text-slate-500 font-medium">총 재고 수량 ➔</p>
-                    <p id="dashTotalStock" class="text-2xl font-bold text-blue-600 mt-1">0</p>
-                    <p class="text-[11px] text-slate-400 mt-1">📦 전 창고 합산</p>
                 </div>
                 <div onclick="navigateToInventory('부족')" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:border-rose-400 hover:shadow-md transition">
                     <p class="text-xs text-slate-500 font-medium">재고 부족 품목 ➔</p>
@@ -68,7 +64,7 @@
                 </div>
             </div>
 
-            <!-- 최근 입출고 내역 및 재고 부족 리스트 -->
+            <!-- 재고 부족 리스트 및 자주 나가는 자재 목록 -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-3">
                     <h3 class="font-bold text-slate-700 text-sm">⚠️ 재고 부족 리스트</h3>
@@ -88,20 +84,37 @@
                 </div>
 
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-3">
-                    <h3 class="font-bold text-slate-700 text-sm">🔄 최근 입출고 내역 (최신 5건)</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs min-w-[340px]">
+                    <h3 class="font-bold text-slate-700 text-sm">🔥 자주 나가는 자재 TOP 10 (출고 빈도순)</h3>
+                    <div class="overflow-x-auto max-h-64">
+                        <table class="w-full text-left text-xs min-w-[320px]">
                             <thead>
-                                <tr class="border-b border-slate-200 text-slate-400 bg-slate-50">
-                                    <th class="p-2">구분</th>
-                                    <th class="p-2">자재명</th>
-                                    <th class="p-2 text-right">수량</th>
-                                    <th class="p-2">일시</th>
+                                <tr class="border-b border-slate-200 text-slate-400 bg-slate-50 sticky top-0">
+                                    <th class="p-2">순위 / 자재명</th>
+                                    <th class="p-2 text-right">총 출고수량</th>
                                 </tr>
                             </thead>
-                            <tbody id="dashRecentLogTable"></tbody>
+                            <tbody id="dashTopFrequentTable"></tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+
+            <!-- 최근 입출고 내역 (최신 10건) -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-3">
+                <h3 class="font-bold text-slate-700 text-sm">🔄 최근 입출고 내역 (최신 10건)</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs min-w-[450px]">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-400 bg-slate-50">
+                                <th class="p-2 w-32">일시</th>
+                                <th class="p-2 w-16">구분</th>
+                                <th class="p-2">자재명</th>
+                                <th class="p-2 text-right w-20">수량</th>
+                                <th class="p-2">작업자 / 비고</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashRecentLogTable"></tbody>
+                    </table>
                 </div>
             </div>
         </section>
@@ -126,7 +139,7 @@
                     <table class="w-full text-left border-collapse text-sm min-w-[550px]">
                         <thead>
                             <tr class="border-b border-slate-200 text-slate-500 bg-slate-50 text-xs">
-                                <th class="p-3 w-28">자재번호(SKU)</th>
+                                <th class="p-3 w-32">자재번호(SKU)</th>
                                 <th class="p-3 w-40">자재명</th>
                                 <th class="p-3">규격 / 위치</th>
                                 <th class="p-3 text-right w-20">안전재고</th>
@@ -176,7 +189,7 @@
                     <div class="space-y-1">
                         <label class="block text-xs font-semibold text-slate-600">자재 코드 입력</label>
                         <div class="flex items-center gap-2">
-                            <input type="text" id="manualCode" placeholder="예: MTR-001 입력" class="min-w-0 flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="text" id="manualCode" placeholder="예: YJHT-001 입력" class="min-w-0 flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <button onclick="searchMaterialByCode()" class="shrink-0 bg-slate-800 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-slate-700">조회</button>
                             <button onclick="openScannerModal()" title="QR/바코드 카메라 스캔" class="shrink-0 bg-blue-600 text-white w-10 h-10 rounded-lg text-sm font-semibold hover:bg-blue-700 flex items-center justify-center shadow">
                                 📷
@@ -227,11 +240,23 @@
         <!-- 4. [탭] 자재 관리(관리자 전용 - 듀얼 뷰 화면 고정용 영역) -->
         <section id="tabAdmin" class="space-y-6 hidden">
             <div class="bg-white p-5 rounded-xl shadow-sm border border-amber-300 space-y-4">
-                <h2 class="font-bold text-amber-800 text-base">🔒 자재 마스터 등록 및 관리 (관리자 고정 영역)</h2>
+                <div class="flex justify-between items-center">
+                    <h2 class="font-bold text-amber-800 text-base">🔒 자재 마스터 등록 및 관리</h2>
+                    <button onclick="resetAdminForm()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1 rounded font-semibold">＋ 신규 등록 모드</button>
+                </div>
+
                 <div class="grid grid-cols-1 gap-3">
+                    <!-- 기존 자재 선택(수정용) 드롭다운 -->
+                    <div class="bg-amber-50/60 p-3 rounded-lg border border-amber-200 space-y-1">
+                        <label class="block text-xs font-bold text-amber-900">기존 자재 선택 (정보 수정 시 선택)</label>
+                        <select id="editMaterialSelect" onchange="onSelectEditMaterial(this.value)" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+                            <option value="">-- 신규 등록하려면 비워두세요 (자동 YJHT- 부여) --</option>
+                        </select>
+                    </div>
+
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">자재 번호 (SKU)</label>
-                        <input type="text" id="adminCode" placeholder="예: MTR-006" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">자재 번호 (SKU) <span class="text-blue-600 font-bold">* YJHT- 필수</span></label>
+                        <input type="text" id="adminCode" placeholder="예: YJHT-001" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">자재명</label>
@@ -247,12 +272,12 @@
                             <input type="number" id="adminSafety" value="20" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">초기 재고</label>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1" id="stockLabelTitle">초기 재고</label>
                             <input type="number" id="adminStock" value="100" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
                         </div>
                     </div>
                 </div>
-                <button onclick="saveMaterial()" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-2.5 rounded-lg font-bold shadow transition text-sm">신규 자재 등록 / 수정 저장</button>
+                <button onclick="saveMaterial()" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-2.5 rounded-lg font-bold shadow transition text-sm">저장하기 (등록 / 수정)</button>
             </div>
 
             <!-- 관리자 비밀번호 변경 -->
@@ -295,15 +320,15 @@
     </div>
 
     <script>
-        let materials = JSON.parse(localStorage.getItem('yjhitech_materials_v3')) || [
-            { code: 'MTR-001', name: '스테인리스 볼트', spec: 'M8x30mm / A창고', safety: 50, stock: 120 },
-            { code: 'MTR-002', name: '고강도 케이블 타이', spec: '100mm 검정 / A창고', safety: 100, stock: 45 },
-            { code: 'MTR-003', name: '산업용 절삭유', spec: '20L 통 / B창고', safety: 10, stock: 8 },
-            { code: 'MTR-004', name: '우레탄 캐스터 바퀴', spec: '4인치 회전 / C창고', safety: 20, stock: 35 },
-            { code: 'MTR-005', name: '방진 고무패드', spec: '100x100x10t / B창고', safety: 30, stock: 15 }
+        let materials = JSON.parse(localStorage.getItem('yjhitech_materials_v4')) || [
+            { code: 'YJHT-001', name: '스테인리스 볼트', spec: 'M8x30mm / A창고', safety: 50, stock: 120 },
+            { code: 'YJHT-002', name: '고강도 케이블 타이', spec: '100mm 검정 / A창고', safety: 100, stock: 45 },
+            { code: 'YJHT-003', name: '산업용 절삭유', spec: '20L 통 / B창고', safety: 10, stock: 8 },
+            { code: 'YJHT-004', name: '우레탄 캐스터 바퀴', spec: '4인치 회전 / C창고', safety: 20, stock: 35 },
+            { code: 'YJHT-005', name: '방진 고무패드', spec: '100x100x10t / B창고', safety: 30, stock: 15 }
         ];
 
-        let txLogs = JSON.parse(localStorage.getItem('yjhitech_logs_v3')) || [];
+        let txLogs = JSON.parse(localStorage.getItem('yjhitech_logs_v4')) || [];
         let adminPw = localStorage.getItem('yjhitech_admin_pw') || 'dudwjs1998$$';
         let isAdmin = false;
         let currentScannedCode = null;
@@ -342,6 +367,7 @@
                 if(btnDash) btnDash.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 transition no-break";
                 if(btnAdmin) btnAdmin.className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-800 bg-amber-100 transition no-break";
                 renderDashboard();
+                renderEditMaterialDropdown();
                 return;
             }
 
@@ -364,6 +390,7 @@
 
                 if(tabName === 'dashboard') renderDashboard();
                 if(tabName === 'inventory') { renderInventoryTable(); renderLogsTable(); }
+                renderEditMaterialDropdown();
                 return;
             }
 
@@ -385,7 +412,7 @@
             }
         }
 
-        // 대시보드 카드 클릭 시 현황 탭으로 이동 (관리자 모드면 오른쪽 창을 현황으로 변경)
+        // 대시보드 카드 클릭 시 현황 탭으로 이동
         function navigateToInventory(searchKeyword) {
             switchTab('inventory');
             const searchInput = document.getElementById('inventorySearch');
@@ -395,19 +422,62 @@
             }
         }
 
+        // 수정용 기존 자재 드롭다운 렌더링
+        function renderEditMaterialDropdown() {
+            const select = document.getElementById('editMaterialSelect');
+            if(!select) return;
+            select.innerHTML = '<option value="">-- 신규 등록하려면 비워두세요 (자동 YJHT- 부여) --</option>';
+            materials.forEach(m => {
+                select.innerHTML += `<option value="${m.code}">[${m.code}] ${m.name}</option>`;
+            });
+        }
+
+        // 기존 자재 선택 시 입력폼에 데이터 채우기
+        function onSelectEditMaterial(code) {
+            const codeInput = document.getElementById('adminCode');
+            const nameInput = document.getElementById('adminName');
+            const specInput = document.getElementById('adminSpec');
+            const safetyInput = document.getElementById('adminSafety');
+            const stockInput = document.getElementById('adminStock');
+            const stockTitle = document.getElementById('stockLabelTitle');
+
+            if(!code) {
+                resetAdminForm();
+                return;
+            }
+
+            const item = materials.find(m => m.code === code);
+            if(item) {
+                codeInput.value = item.code;
+                nameInput.value = item.name;
+                specInput.value = item.spec;
+                safetyInput.value = item.safety;
+                stockInput.value = item.stock;
+                stockTitle.innerText = "현재고 수량 수정";
+            }
+        }
+
+        function resetAdminForm() {
+            const select = document.getElementById('editMaterialSelect');
+            if(select) select.value = "";
+            document.getElementById('adminCode').value = '';
+            document.getElementById('adminName').value = '';
+            document.getElementById('adminSpec').value = '';
+            document.getElementById('adminSafety').value = '20';
+            document.getElementById('adminStock').value = '100';
+            document.getElementById('stockLabelTitle').innerText = "초기 재고";
+        }
+
         // 대시보드 렌더링
         function renderDashboard() {
             const totalCountEl = document.getElementById('dashTotalCount');
             if(totalCountEl) totalCountEl.innerText = materials.length;
-            
-            const totalStock = materials.reduce((acc, m) => acc + m.stock, 0);
-            const totalStockEl = document.getElementById('dashTotalStock');
-            if(totalStockEl) totalStockEl.innerText = totalStock;
 
             const shortageItems = materials.filter(m => m.stock < m.safety);
             const shortageCountEl = document.getElementById('dashShortageCount');
             if(shortageCountEl) shortageCountEl.innerText = shortageItems.length;
 
+            // 재고 부족 리스트
             const shortageTbody = document.getElementById('dashShortageTable');
             if(shortageTbody) {
                 shortageTbody.innerHTML = '';
@@ -427,21 +497,47 @@
                 }
             }
 
+            // 자주 나가는 자재 TOP 10 (출고 빈도순 혹은 출고 수량 합산순)
+            const freqMap = {};
+            txLogs.filter(l => l.type === 'OUT').forEach(l => {
+                freqMap[l.name] = (freqMap[l.name] || 0) + l.qty;
+            });
+            const sortedFreq = Object.keys(freqMap).map(name => ({ name, totalOut: freqMap[name] })).sort((a,b) => b.totalOut - a.totalOut).slice(0, 10);
+            
+            const freqTbody = document.getElementById('dashTopFrequentTable');
+            if(freqTbody) {
+                freqTbody.innerHTML = '';
+                if(sortedFreq.length === 0) {
+                    freqTbody.innerHTML = `<tr><td colspan="2" class="p-3 text-center text-slate-400">출고 이력이 없습니다.</td></tr>`;
+                } else {
+                    sortedFreq.forEach((item, idx) => {
+                        freqTbody.innerHTML += `
+                            <tr class="border-b border-slate-100">
+                                <td class="p-2 font-medium"><span class="text-blue-600 font-bold mr-1">${idx+1}.</span> <span class="no-break">${item.name}</span></td>
+                                <td class="p-2 text-right font-bold text-slate-700 no-break">총 ${item.totalOut}개 출고</td>
+                            </tr>
+                        `;
+                    });
+                }
+            }
+
+            // 최근 입출고 내역 (최신 10건)
             const recentTbody = document.getElementById('dashRecentLogTable');
             if(recentTbody) {
                 recentTbody.innerHTML = '';
-                const recentLogs = txLogs.slice(0, 5);
+                const recentLogs = txLogs.slice(0, 10);
                 if(recentLogs.length === 0) {
-                    recentTbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-400">입출고 이력이 없습니다.</td></tr>`;
+                    recentTbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">입출고 이력이 없습니다.</td></tr>`;
                 } else {
                     recentLogs.forEach(l => {
                         const badge = l.type === 'IN' ? '<span class="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded text-[10px] font-bold no-break">입고</span>' : '<span class="bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded text-[10px] font-bold no-break">출고</span>';
                         recentTbody.innerHTML += `
                             <tr class="border-b border-slate-100">
+                                <td class="p-2 text-slate-400 text-[10px] no-break">${l.time}</td>
                                 <td class="p-2">${badge}</td>
                                 <td class="p-2 font-medium no-break">${l.name}</td>
                                 <td class="p-2 text-right font-bold ${l.type === 'IN' ? 'text-emerald-600' : 'text-rose-600'} no-break">${l.type === 'IN' ? '+' : '-'}${l.qty}</td>
-                                <td class="p-2 text-slate-400 text-[10px] no-break">${l.time}</td>
+                                <td class="p-2 text-slate-600 text-[11px]">${l.memo}</td>
                             </tr>
                         `;
                     });
@@ -514,7 +610,7 @@
         function deleteLog(index) {
             if(confirm('이 입출고 이력을 삭제하시겠습니까?')) {
                 txLogs.splice(index, 1);
-                localStorage.setItem('yjhitech_logs_v3', JSON.stringify(txLogs));
+                localStorage.setItem('yjhitech_logs_v4', JSON.stringify(txLogs));
                 renderLogsTable();
                 renderDashboard();
             }
@@ -523,7 +619,7 @@
         function clearAllLogs() {
             if(confirm('모든 입출고 이력 로그를 초기화(삭제)하시겠습니까?')) {
                 txLogs = [];
-                localStorage.setItem('yjhitech_logs_v3', JSON.stringify(txLogs));
+                localStorage.setItem('yjhitech_logs_v4', JSON.stringify(txLogs));
                 renderLogsTable();
                 renderDashboard();
                 alert('모든 이력이 초기화되었습니다.');
@@ -604,8 +700,8 @@
                 memo: memo
             });
 
-            localStorage.setItem('yjhitech_materials_v3', JSON.stringify(materials));
-            localStorage.setItem('yjhitech_logs_v3', JSON.stringify(txLogs));
+            localStorage.setItem('yjhitech_materials_v4', JSON.stringify(materials));
+            localStorage.setItem('yjhitech_logs_v4', JSON.stringify(txLogs));
 
             alert(`${type === 'IN' ? '입고' : '출고'}가 완료되었습니다! (현재고: ${item.stock}개)`);
             document.getElementById('selectedItemStock').innerText = item.stock;
@@ -659,35 +755,62 @@
             alert('작업자 모드로 전환되었습니다.');
         }
 
+        // 자재 등록 및 수정 처리 (YJHT- 필수 규칙 적용)
         function saveMaterial() {
-            const code = document.getElementById('adminCode').value.trim();
+            let code = document.getElementById('adminCode').value.trim();
             const name = document.getElementById('adminName').value.trim();
             const spec = document.getElementById('adminSpec').value.trim();
             const safety = parseInt(document.getElementById('adminSafety').value) || 10;
             const stock = parseInt(document.getElementById('adminStock').value) || 0;
+            const selectedEditCode = document.getElementById('editMaterialSelect').value;
 
-            if(!code || !name) {
-                alert('자재 번호와 자재명은 필수 입력 항목입니다.');
+            if(!name) {
+                alert('자재명은 필수 입력 항목입니다.');
                 return;
             }
 
-            const existing = materials.find(m => m.code === code);
-            if(existing) {
-                existing.name = name;
-                existing.spec = spec;
-                existing.safety = safety;
-                existing.stock = stock;
-                alert('자재 정보가 수정되었습니다.');
-            } else {
-                materials.push({ code, name, spec, safety, stock });
-                alert('새로운 자재가 등록되었습니다.');
+            // 자재 번호가 YJHT-로 시작하지 않으면 강제로 붙여줌
+            if(!code.startsWith('YJHT-')) {
+                // 숫사만 입력했거나 뒤에 번호만 적은 경우 처리
+                const cleanNum = code.replace(/[^0-9]/g, '');
+                if(cleanNum) {
+                    code = 'YJHT-' + cleanNum.padStart(3, '0');
+                } else {
+                    // 완전히 비어있거나 하면 자동 생성
+                    const nextSeq = materials.length + 1;
+                    code = 'YJHT-' + String(nextSeq).padStart(3, '0');
+                }
             }
 
-            localStorage.setItem('yjhitech_materials_v3', JSON.stringify(materials));
-            document.getElementById('adminCode').value = '';
-            document.getElementById('adminName').value = '';
-            document.getElementById('adminSpec').value = '';
-            
+            if(selectedEditCode) {
+                // 기존 자재 수정인 경우
+                const existing = materials.find(m => m.code === selectedEditCode);
+                if(existing) {
+                    // 코드가 변경되었다면 중복 체크
+                    if(code !== selectedEditCode && materials.some(m => m.code === code)) {
+                        alert('이미 존재하는 자재 번호(SKU)입니다.');
+                        return;
+                    }
+                    existing.code = code;
+                    existing.name = name;
+                    existing.spec = spec;
+                    existing.safety = safety;
+                    existing.stock = stock;
+                    alert('기존 자재 정보가 수정되었습니다!');
+                }
+            } else {
+                // 신규 등록인 경우
+                if(materials.some(m => m.code === code)) {
+                    alert('이미 존재하는 자재 번호(SKU)입니다. 다른 번호를 입력해주세요.');
+                    return;
+                }
+                materials.push({ code, name, spec, safety, stock });
+                alert('새로운 자재가 등록되었습니다!');
+            }
+
+            localStorage.setItem('yjhitech_materials_v4', JSON.stringify(materials));
+            resetAdminForm();
+            renderEditMaterialDropdown();
             renderDashboard();
             if(document.getElementById('tabInventory').classList.contains('block')) {
                 renderInventoryTable();
@@ -737,6 +860,7 @@
 
         window.onload = function() {
             switchTab('dashboard');
+            renderEditMaterialDropdown();
         };
     </script>
 </body>
