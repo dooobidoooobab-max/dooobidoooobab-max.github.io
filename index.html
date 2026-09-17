@@ -174,7 +174,7 @@
             </div>
         </section>
 
-        <!-- 3. [탭] 발주 현황 (신규 추가) -->
+        <!-- 3. [탭] 발주 현황 -->
         <section id="tabOrder" class="space-y-6 hidden">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- 발주 등록 카드 -->
@@ -299,9 +299,25 @@
 
         <!-- 5. [탭] 자재 관리(관리자 전용) -->
         <section id="tabAdmin" class="space-y-6 hidden">
+            <!-- 엑셀 일괄 업로드 카드 (신규 추가) -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-emerald-300 space-y-3">
+                <h2 class="font-bold text-emerald-800 text-base">📁 자재 엑셀(CSV) 일괄 등록/수정</h2>
+                <p class="text-xs text-slate-500">CSV 파일을 업로드하여 여러 자재를 한 번에 등록하거나 수정할 수 있습니다.</p>
+                
+                <div class="bg-emerald-50/60 p-3 rounded-lg border border-emerald-200 text-xs text-slate-600 space-y-1">
+                    <p class="font-bold text-emerald-900">📌 파일 형식 안내</p>
+                    <p>첫 줄(헤더) 제외 순서대로 입력: <b class="text-slate-800">자재번호, 자재명, 규격/위치, 안전재고, 현재수량</b></p>
+                    <p class="text-[11px] text-slate-500">예시: YJHT-001,스텐 볼트,M8 창고A,50,120</p>
+                </div>
+
+                <input type="file" id="csvFileInput" accept=".csv, .txt" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+                <button onclick="handleExcelUpload()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg font-bold text-xs shadow transition">일괄 업로드 실행</button>
+            </div>
+
+            <!-- 개별 등록 및 수정 카드 -->
             <div class="bg-white p-5 rounded-xl shadow-sm border border-amber-300 space-y-4">
                 <div class="flex justify-between items-center">
-                    <h2 class="font-bold text-amber-800 text-base">🔒 자재 마스터 등록 및 관리</h2>
+                    <h2 class="font-bold text-amber-800 text-base">🔒 개별 자재 마스터 등록 및 관리</h2>
                     <button onclick="resetAdminForm()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1 rounded font-semibold">＋ 신규 등록 모드</button>
                 </div>
 
@@ -493,7 +509,6 @@
         }
 
         function renderOrderStats() {
-            // 완료된 발주 건들에서 결재일~입고일 소요 일수 계산
             const completedOrders = orders.filter(o => o.step === '입고' && o.completedDate);
             if(completedOrders.length === 0) {
                 document.getElementById('statMin').innerText = '0일';
@@ -541,7 +556,7 @@
                 code: code,
                 name: item.name,
                 qty: qty,
-                step: '결재', // 결재 -> 발주 -> 입고
+                step: '결재',
                 time: timeString,
                 manager: manager,
                 completedDate: null
@@ -562,13 +577,11 @@
             const timeString = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
             if(nextStep === '입고' && order.step !== '입고') {
-                // 입고 완료 시 자재 수량 자동 최신화
                 const item = materials.find(m => m.code === order.code);
                 if(item) {
                     item.stock += order.qty;
                     localStorage.setItem('yjhitech_materials_v5', JSON.stringify(materials));
 
-                    // 입출고 내역에 자동 기록
                     txLogs.unshift({
                         time: timeString,
                         type: 'IN',
@@ -609,7 +622,6 @@
             }
 
             orders.forEach(o => {
-                // 단계별 버튼 및 뱃지
                 let stepBadge = '';
                 let actionBtns = '';
 
@@ -624,7 +636,6 @@
                     actionBtns = `<span class="text-slate-400 text-[10px]">완료됨</span>`;
                 }
 
-                // 소요 일수 계산 표시
                 let daysText = '-';
                 if(o.step === '입고' && o.completedDate) {
                     const start = new Date(o.time);
@@ -650,7 +661,6 @@
             });
         }
 
-        // 기존 자재 수정 드롭다운
         function renderEditMaterialDropdown() {
             const select = document.getElementById('editMaterialSelect');
             if(!select) return;
@@ -1029,6 +1039,73 @@
             if(document.getElementById('tabInventory').classList.contains('block')) {
                 renderInventoryTable();
             }
+        }
+
+        // 엑셀(CSV) 일괄 업로드 처리 함수 (신규 추가)
+        function handleExcelUpload() {
+            const fileInput = document.getElementById('csvFileInput');
+            const file = fileInput.files[0];
+            if(!file) {
+                alert('업로드할 CSV 파일을 선택해주세요.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split(/\r\n|\n/);
+                let successCount = 0;
+                let updateCount = 0;
+
+                // 첫 줄(헤더)을 제외하고 반복문 실행 (데이터가 있는 경우만)
+                for(let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if(!line) continue;
+
+                    // 큰따옴표 등으로 둘러싸인 CSV 파싱 고려 혹은 단순 콤마 쪼개기
+                    const cols = line.split(',').map(c => c.replace(/^["']|["']$/g, '').trim());
+                    if(cols.length < 2) continue;
+
+                    let code = cols[0] || '';
+                    let name = cols[1] || '';
+                    let spec = cols[2] || '-';
+                    let safety = parseInt(cols[3]) || 20;
+                    let stock = parseInt(cols[4]) || 0;
+
+                    if(!name) continue;
+
+                    // 자재번호가 비어있거나 YJHT 형식이 아니면 자동 생성
+                    if(!code.startsWith('YJHT-')) {
+                        const nextSeq = materials.length + 1;
+                        code = 'YJHT-' + String(nextSeq).padStart(3, '0');
+                    }
+
+                    const existingIndex = materials.findIndex(m => m.code === code);
+                    if(existingIndex >= 0) {
+                        // 기존에 있으면 정보 업데이트
+                        materials[existingIndex].name = name;
+                        materials[existingIndex].spec = spec;
+                        materials[existingIndex].safety = safety;
+                        materials[existingIndex].stock = stock;
+                        updateCount++;
+                    } else {
+                        // 없으면 새로 추가
+                        materials.push({ code, name, spec, safety, stock });
+                        successCount++;
+                    }
+                }
+
+                localStorage.setItem('yjhitech_materials_v5', JSON.stringify(materials));
+                fileInput.value = ''; // 파일 입력 초기화
+                renderEditMaterialDropdown();
+                renderDashboard();
+                if(document.getElementById('tabInventory').classList.contains('block')) {
+                    renderInventoryTable();
+                }
+
+                alert(`일괄 업로드 완료!\n- 신규 등록: ${successCount}건\n- 기존 수정: ${updateCount}건`);
+            };
+            reader.readAsText(file, 'utf-8');
         }
 
         function changeAdminPassword() {
