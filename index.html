@@ -132,6 +132,14 @@
                     <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="자재명, 종류(예: 잡자재), 코드 검색..." class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
 
+                <!-- 🔍 종류별 체크박스 필터 영역 추가 -->
+                <div id="categoryFilterContainer" class="flex flex-wrap gap-2 items-center bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs">
+                    <span class="font-bold text-slate-700 mr-1">종류 필터:</span>
+                    <label class="inline-flex items-center gap-1 cursor-pointer">
+                        <input type="checkbox" id="catFilterAll" value="ALL" checked onclick="onCategoryFilterClick('ALL')" class="rounded text-blue-600 focus:ring-blue-500"> 전체
+                    </label>
+                </div>
+
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-sm min-w-[650px]">
                         <thead>
@@ -465,7 +473,7 @@
                 if(btnAdmin) btnAdmin.className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 transition no-break";
 
                 if(tabName === 'dashboard') renderDashboard();
-                if(tabName === 'inventory') { renderInventoryTable(); renderLogsTable(); }
+                if(tabName === 'inventory') { renderCategoryFilters(); renderInventoryTable(); renderLogsTable(); }
                 if(tabName === 'order') { renderOrderTable(); renderOrderStats(); }
                 renderEditMaterialDropdown();
                 return;
@@ -482,6 +490,7 @@
                 renderDashboard();
             } else if(tabName === 'inventory') {
                 if(btnInv) btnInv.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 transition no-break";
+                renderCategoryFilters();
                 renderInventoryTable();
                 renderLogsTable();
             } else if(tabName === 'order') {
@@ -785,6 +794,46 @@
             }
         }
 
+        // 종류 체크박스 동적 생성 함수
+        function renderCategoryFilters() {
+            const container = document.getElementById('categoryFilterContainer');
+            if(!container) return;
+
+            let categories = [...new Set(materials.map(m => m.category || '미지정'))];
+
+            let html = `
+                <span class="font-bold text-slate-700 mr-1">종류 필터:</span>
+                <label class="inline-flex items-center gap-1 cursor-pointer mr-2">
+                    <input type="checkbox" id="catFilterAll" value="ALL" checked onclick="onCategoryFilterClick('ALL')" class="rounded text-blue-600"> 전체
+                </label>
+            `;
+
+            categories.forEach(cat => {
+                html += `
+                    <label class="inline-flex items-center gap-1 cursor-pointer mr-2">
+                        <input type="checkbox" name="catFilter" value="${cat}" checked onclick="onCategoryFilterClick('${cat}')" class="rounded text-blue-600"> ${cat}
+                    </label>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // 체크박스 클릭 제어 로직
+        function onCategoryFilterClick(val) {
+            const allCheckbox = document.getElementById('catFilterAll');
+            const checkboxes = document.querySelectorAll('input[name="catFilter"]');
+
+            if(val === 'ALL') {
+                const isChecked = allCheckbox.checked;
+                checkboxes.forEach(cb => cb.checked = isChecked);
+            } else {
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                allCheckbox.checked = allChecked;
+            }
+            renderInventoryTable();
+        }
+
         function renderInventoryTable() {
             const searchInput = document.getElementById('inventorySearch');
             const keyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
@@ -792,12 +841,21 @@
             if(!tbody) return;
             tbody.innerHTML = '';
             
+            // 체크된 종류들 가져오기
+            const checkboxes = document.querySelectorAll('input[name="catFilter"]');
+            let checkedCategories = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+
             const filtered = materials.filter(m => {
                 const isShort = m.stock < m.safety;
-                const cat = (m.category || '').toLowerCase();
-                const matchesKeyword = m.code.toLowerCase().includes(keyword) || m.name.toLowerCase().includes(keyword) || cat.includes(keyword) || m.spec.toLowerCase().includes(keyword);
-                if(keyword === '부족') return isShort;
-                return matchesKeyword;
+                const cat = m.category || '미지정';
+                
+                // 종류 필터 체크 여부 확인 (체크박스가 아예 안 만들어졌을 경우 대비해 기본 통과 처리)
+                const matchesCategory = checkedCategories.length === 0 || checkedCategories.includes(cat);
+                
+                const matchesKeyword = m.code.toLowerCase().includes(keyword) || m.name.toLowerCase().includes(keyword) || cat.toLowerCase().includes(keyword) || m.spec.toLowerCase().includes(keyword);
+                
+                if(keyword === '부족') return isShort && matchesCategory;
+                return matchesCategory && matchesKeyword;
             });
 
             if(filtered.length === 0) {
@@ -1048,11 +1106,11 @@
             renderEditMaterialDropdown();
             renderDashboard();
             if(document.getElementById('tabInventory').classList.contains('block')) {
+                renderCategoryFilters();
                 renderInventoryTable();
             }
         }
 
-        // 엑셀(CSV) 일괄 업로드 처리 함수 (종류 필드 포함)
         function handleExcelUpload() {
             const fileInput = document.getElementById('csvFileInput');
             const file = fileInput.files[0];
@@ -1108,6 +1166,7 @@
                 renderEditMaterialDropdown();
                 renderDashboard();
                 if(document.getElementById('tabInventory').classList.contains('block')) {
+                    renderCategoryFilters();
                     renderInventoryTable();
                 }
 
